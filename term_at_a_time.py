@@ -28,4 +28,5 @@ def arrange_documents():
         print(f'{doc.url}: {weight}')
 
 
+# launch
 arrange_documents()
