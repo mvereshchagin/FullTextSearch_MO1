@@ -10,6 +10,13 @@ class Document:
 
 
 @dataclass
+class DocumentLink:
+    id: int
+    doc_id_from: int
+    doc_id_to: int
+
+
+@dataclass
 class Word:
     id: int
     word: str

@@ -1,6 +1,6 @@
 from models import Document, Word, PostingList
 
-from typing import List
+from typing import List, Optional
 
 
 class IDocumentRepository:
@@ -11,6 +11,14 @@ class IDocumentRepository:
         pass
 
     def get_by_id(self, doc_id: int) -> Document or None:
+        pass
+
+    def set_weight(self, doc_id: int, weight: float) -> None:
+        pass
+
+
+class IDocumentLinkRepository:
+    def get_by_doc_id(self, doc_id: int) -> List[int]:
         pass
 
 
@@ -36,4 +44,7 @@ class IPostingListRepository:
         pass
 
     def get_by_word_id(self, word_id: int) -> List[PostingList]:
+        pass
+
+    def get_by_word_id_and_doc_id(self, word_id: int, doc_id: int) -> Optional[PostingList]:
         pass

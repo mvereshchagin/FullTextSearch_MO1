@@ -1,7 +1,7 @@
-from models import Document, Word, PostingList
-from irepositories import IDocumentRepository, IWordRepository, IPostingListRepository
+from models import Document, Word, PostingList, DocumentLink
+from irepositories import IDocumentRepository, IWordRepository, IPostingListRepository, IDocumentLinkRepository
 
-from typing import List
+from typing import List, Optional
 
 
 class FakeDocumentRepository(IDocumentRepository):
@@ -26,6 +26,40 @@ class FakeDocumentRepository(IDocumentRepository):
             if doc.id == doc_id:
                 return doc
         return None
+
+    def set_weight(self, doc_id: int, weight: float) -> None:
+        for doc in self.data:
+            if doc.id == doc_id:
+                doc.weight = weight
+
+
+class FakeDocumentLinkRepository(IDocumentLinkRepository):
+
+    data: List[DocumentLink] = [
+        DocumentLink(id=1, doc_id_from=1, doc_id_to=6),
+        DocumentLink(id=2, doc_id_from=1, doc_id_to=6),
+        DocumentLink(id=3, doc_id_from=1, doc_id_to=5),
+        DocumentLink(id=4, doc_id_from=1, doc_id_to=6),
+        DocumentLink(id=5, doc_id_from=2, doc_id_to=4),
+        DocumentLink(id=6, doc_id_from=2, doc_id_to=6),
+        DocumentLink(id=7, doc_id_from=3, doc_id_to=4),
+        DocumentLink(id=8, doc_id_from=3, doc_id_to=5),
+        DocumentLink(id=9, doc_id_from=3, doc_id_to=6),
+        DocumentLink(id=10, doc_id_from=3, doc_id_to=6),
+        DocumentLink(id=12, doc_id_from=4, doc_id_to=3),
+        DocumentLink(id=13, doc_id_from=4, doc_id_to=3),
+        DocumentLink(id=14, doc_id_from=4, doc_id_to=6),
+        DocumentLink(id=15, doc_id_from=5, doc_id_to=6),
+        DocumentLink(id=16, doc_id_from=5, doc_id_to=5),
+        DocumentLink(id=17, doc_id_from=5, doc_id_to=5),
+        DocumentLink(id=18, doc_id_from=6, doc_id_to=6),
+        DocumentLink(id=19, doc_id_from=6, doc_id_to=6),
+        DocumentLink(id=20, doc_id_from=6, doc_id_to=6),
+    ]
+
+    def get_by_doc_id(self, doc_id: int) -> List[int]:
+        return [document_link.doc_id_to for document_link in self.data
+                if document_link.doc_id_from == doc_id]
 
 
 class FakeWordRepository(IWordRepository):
@@ -76,5 +110,15 @@ class FakePostingListRepository(IPostingListRepository):
     def add(self, positing_list: PostingList) -> None:
         self.data.append(positing_list)
 
-    def get_by_word_id(self, word_id: int) -> List[PostingList]:
-        return [pl for pl in self.data if pl.word_id == word_id]
+    def get_by_word_id_an(self, word_id: int) -> List[PostingList]:
+        # return [pl for pl in self.data if pl.word_id == word_id]
+        for pl in self.data:
+            if pl.word_id == word_id:
+                yield pl
+
+    def get_by_word_id_and_doc_id(self, word_id: int, doc_id: int) -> Optional[PostingList]:
+        for pl in self.data:
+            if pl.word_id == word_id and pl.document_id == doc_id:
+                return pl
+
+        return None
