@@ -1,13 +1,13 @@
-from typing import Any, List, Dict, Tuple
+from typing import Any, List, Dict, Tuple, Iterator
 
 from config import document_link_repository, document_repository
 from models import Document
 
 alpha = 0.15
-max_roll_count = 50
+max_roll_count = 500
 
 
-def roll():
+def roll() -> None:
 
     doc_rank_dict: Dict[int, List[float]] = {}
     for doc in document_repository.get_all():
@@ -18,17 +18,27 @@ def roll():
                 doc_rank_dict[doc_id] = [0, ]
             doc_rank_dict[doc_id].append(rank)
 
-    doc_ranks_res: Dict[int, float] = {}
+    # doc_ranks_res: Dict[int, float] = {}
+    # for doc_id, ranks in doc_rank_dict.items():
+    #     res_rank, _ = reduce_fn(doc_id, ranks)
+    #     doc_ranks_res[doc_id] = res_rank
+    #
+    # for doc_id, rank in sorted(doc_ranks_res.items(), key=lambda x: x[1]):
+    #     doc = document_repository.get_by_id(doc_id)
+    #     print(f'{doc.url}, rank = {rank}')
+    #     document_repository.set_weight(doc_id, rank)
+
+    doc_ranks_res: List[Tuple[float, int]] = []
     for doc_id, ranks in doc_rank_dict.items():
-        doc_ranks_res[doc_id] = reduce_fn(doc_id, ranks)
+        doc_ranks_res.append(reduce_fn(doc_id, ranks))
 
-    for doc_id, rank in sorted(doc_ranks_res.items(), key=lambda x: x[1]):
+    for rank, doc_id in sorted(doc_ranks_res):
         doc = document_repository.get_by_id(doc_id)
-        print(f'{doc.url}, rank = {rank}')
-        document_repository.set_weight(doc_id, rank)
+        print(f'{doc.url}, rank = {-rank}')
+        document_repository.set_weight(doc_id, -rank)
 
 
-def map_fn(doc_id: int, value: Tuple[float, List[int]]):
+def map_fn(doc_id: int, value: Tuple[float, List[int]]) -> Iterator[Tuple[int, float]]:
     rank, doc_ids = value
     yield doc_id, 0
 
@@ -41,9 +51,9 @@ def map_fn(doc_id: int, value: Tuple[float, List[int]]):
             yield doc_id_to, float(rank) / len(all_docs)
 
 
-def reduce_fn(doc_id: int, values: List[float]):
+def reduce_fn(doc_id: int, values: List[float]) -> Tuple[float, int]:
     all_docs = document_repository.get_all()
-    return (1 - alpha) * sum(values) + alpha / len(all_docs)
+    return - ((1 - alpha) * sum(values) + alpha / len(all_docs)), doc_id
 
 
 def main():
